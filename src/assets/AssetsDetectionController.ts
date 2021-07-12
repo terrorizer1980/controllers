@@ -1,16 +1,17 @@
-import contractMap from '@metamask/contract-metadata';
-import BaseController, { BaseConfig, BaseState } from '../BaseController';
+import { BaseController, BaseConfig, BaseState } from '../BaseController';
 import type { NetworkState, NetworkType } from '../network/NetworkController';
 import type { PreferencesState } from '../user/PreferencesController';
 import { safelyExecute, timeoutFetch, toChecksumHexAddress } from '../util';
 import { MAINNET } from '../constants';
 import type {
-  AssetsController,
-  AssetsState,
+  CollectiblesController,
+  CollectiblesState,
   CollectibleMetadata,
-} from './AssetsController';
+} from './CollectiblesController';
+import type { TokensController, TokensState } from './TokensController';
 import type { AssetsContractController } from './AssetsContractController';
 import { Token } from './TokenRatesController';
+import { TokenListState } from './TokenListController';
 
 const DEFAULT_INTERVAL = 180000;
 
@@ -176,40 +177,52 @@ export class AssetsDetectionController extends BaseController<
 
   private getBalancesInSingleCall: AssetsContractController['getBalancesInSingleCall'];
 
-  private addTokens: AssetsController['addTokens'];
+  private addTokens: TokensController['addTokens'];
 
-  private addCollectible: AssetsController['addCollectible'];
+  private addCollectible: CollectiblesController['addCollectible'];
 
-  private getAssetsState: () => AssetsState;
+  private getCollectiblesState: () => CollectiblesState;
+
+  private getTokensState: () => TokensState;
+
+  private getTokenListState: () => TokenListState;
 
   /**
    * Creates a AssetsDetectionController instance
    *
    * @param options
-   * @param options.onAssetsStateChange - Allows subscribing to assets controller state changes
+   * @param options.onCollectiblesStateChange - Allows subscribing to assets controller state changes
+   * @param options.onTokensStateChange - Allows subscribing to tokens controller state changes
    * @param options.onPreferencesStateChange - Allows subscribing to preferences controller state changes
    * @param options.onNetworkStateChange - Allows subscribing to network controller state changes
    * @param options.getOpenSeaApiKey - Gets the OpenSea API key, if one is set
    * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address
    * @param options.addTokens - Add a list of tokens
    * @param options.addCollectible - Add a collectible
-   * @param options.getAssetsState - Gets the current state of the Assets controller
+   * @param options.getCollectiblesState - Gets the current state of the Assets controller
+   * @param options.getTokenListState - Gets the current state of the TokenList controller
+   * @param options.getTokensState - Gets the current state of the Tokens controller
    * @param config - Initial options used to configure this controller
    * @param state - Initial state to set on this controller
    */
   constructor(
     {
-      onAssetsStateChange,
+      onTokensStateChange,
       onPreferencesStateChange,
       onNetworkStateChange,
       getOpenSeaApiKey,
       getBalancesInSingleCall,
       addTokens,
       addCollectible,
-      getAssetsState,
+      getCollectiblesState,
+      getTokenListState,
+      getTokensState,
     }: {
-      onAssetsStateChange: (
-        listener: (assetsState: AssetsState) => void,
+      onCollectiblesStateChange: (
+        listener: (collectiblesState: CollectiblesState) => void,
+      ) => void;
+      onTokensStateChange: (
+        listener: (tokensState: TokensState) => void,
       ) => void;
       onPreferencesStateChange: (
         listener: (preferencesState: PreferencesState) => void,
@@ -219,9 +232,11 @@ export class AssetsDetectionController extends BaseController<
       ) => void;
       getOpenSeaApiKey: () => string | undefined;
       getBalancesInSingleCall: AssetsContractController['getBalancesInSingleCall'];
-      addTokens: AssetsController['addTokens'];
-      addCollectible: AssetsController['addCollectible'];
-      getAssetsState: () => AssetsState;
+      addTokens: TokensController['addTokens'];
+      addCollectible: CollectiblesController['addCollectible'];
+      getCollectiblesState: () => CollectiblesState;
+      getTokenListState: () => TokenListState;
+      getTokensState: () => TokensState;
     },
     config?: Partial<AssetsDetectionConfig>,
     state?: Partial<BaseState>,
@@ -234,9 +249,11 @@ export class AssetsDetectionController extends BaseController<
       tokens: [],
     };
     this.initialize();
-    this.getAssetsState = getAssetsState;
+    this.getCollectiblesState = getCollectiblesState;
+    this.getTokensState = getTokensState;
+    this.getTokenListState = getTokenListState;
     this.addTokens = addTokens;
-    onAssetsStateChange(({ tokens }) => {
+    onTokensStateChange(({ tokens }) => {
       this.configure({ tokens });
     });
     onPreferencesStateChange(({ selectedAddress }) => {
@@ -302,12 +319,12 @@ export class AssetsDetectionController extends BaseController<
       return;
     }
     const tokensAddresses = this.config.tokens.map(
-      /* istanbul ignore next*/ (token) => token.address,
+      /* istanbul ignore next*/ (token) => token.address.toLowerCase(),
     );
+    const { tokenList } = this.getTokenListState();
     const tokensToDetect: string[] = [];
-    for (const address in contractMap) {
-      const contract = contractMap[address];
-      if (contract.erc20 && !tokensAddresses.includes(address)) {
+    for (const address in tokenList) {
+      if (!tokensAddresses.includes(address)) {
         tokensToDetect.push(address);
       }
     }
@@ -317,6 +334,7 @@ export class AssetsDetectionController extends BaseController<
     if (!selectedAddress) {
       return;
     }
+
     await safelyExecute(async () => {
       const balances = await this.getBalancesInSingleCall(
         selectedAddress,
@@ -326,7 +344,7 @@ export class AssetsDetectionController extends BaseController<
       for (const tokenAddress in balances) {
         let ignored;
         /* istanbul ignore else */
-        const { ignoredTokens } = this.getAssetsState();
+        const { ignoredTokens } = this.getTokensState();
         if (ignoredTokens.length) {
           ignored = ignoredTokens.find(
             (token) => token.address === toChecksumHexAddress(tokenAddress),
@@ -335,8 +353,8 @@ export class AssetsDetectionController extends BaseController<
         if (!ignored) {
           tokensToAdd.push({
             address: tokenAddress,
-            decimals: contractMap[tokenAddress].decimals,
-            symbol: contractMap[tokenAddress].symbol,
+            decimals: tokenList[tokenAddress].decimals,
+            symbol: tokenList[tokenAddress].symbol,
           });
         }
       }
@@ -385,7 +403,7 @@ export class AssetsDetectionController extends BaseController<
 
           let ignored;
           /* istanbul ignore else */
-          const { ignoredCollectibles } = this.getAssetsState();
+          const { ignoredCollectibles } = this.getCollectiblesState();
           if (ignoredCollectibles.length) {
             ignored = ignoredCollectibles.find((c) => {
               /* istanbul ignore next */

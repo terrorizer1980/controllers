@@ -1,16 +1,17 @@
 import { stub } from 'sinon';
 import type { Patch } from 'immer';
-import AddressBookController from './user/AddressBookController';
-import EnsController from './third-party/EnsController';
-import ComposableController from './ComposableController';
+import { TokensController } from './assets/TokensController';
+import { CollectiblesController } from './assets/CollectiblesController';
+import { AddressBookController } from './user/AddressBookController';
+import { EnsController } from './third-party/EnsController';
+import { ComposableController } from './ComposableController';
 import { BaseController, BaseState } from './BaseController';
 import { BaseController as BaseControllerV2 } from './BaseControllerV2';
 import {
   ControllerMessenger,
   RestrictedControllerMessenger,
 } from './ControllerMessenger';
-import PreferencesController from './user/PreferencesController';
-import { AssetsController } from './assets/AssetsController';
+import { PreferencesController } from './user/PreferencesController';
 import {
   NetworkController,
   NetworksChainId,
@@ -90,7 +91,7 @@ describe('ComposableController', () => {
       const preferencesController = new PreferencesController();
       const networkController = new NetworkController();
       const assetContractController = new AssetsContractController();
-      const assetController = new AssetsController({
+      const collectiblesController = new CollectiblesController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
@@ -105,24 +106,33 @@ describe('ComposableController', () => {
           assetContractController,
         ),
       });
+      const tokensController = new TokensController({
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
+        onNetworkStateChange: (listener) =>
+          networkController.subscribe(listener),
+      });
       const controller = new ComposableController([
         new AddressBookController(),
-        assetController,
+        collectiblesController,
         assetContractController,
         new EnsController(),
         networkController,
         preferencesController,
+        tokensController,
       ]);
       expect(controller.state).toStrictEqual({
         AddressBookController: { addressBook: {} },
         AssetsContractController: {},
-        AssetsController: {
+        CollectiblesController: {
           allCollectibleContracts: {},
           allCollectibles: {},
-          allTokens: {},
           collectibleContracts: [],
           collectibles: [],
           ignoredCollectibles: [],
+        },
+        TokensController: {
+          allTokens: {},
           ignoredTokens: [],
           suggestedAssets: [],
           tokens: [],
@@ -132,6 +142,8 @@ describe('ComposableController', () => {
         },
         NetworkController: {
           network: 'loading',
+          isCustomNetwork: false,
+          properties: { isEIP1559Compatible: false },
           provider: { type: 'mainnet', chainId: NetworksChainId.mainnet },
         },
         PreferencesController: {
@@ -141,6 +153,7 @@ describe('ComposableController', () => {
           ipfsGateway: 'https://ipfs.io/ipfs/',
           lostIdentities: {},
           selectedAddress: '',
+          useStaticTokenList: false,
         },
       });
     });
@@ -149,7 +162,7 @@ describe('ComposableController', () => {
       const preferencesController = new PreferencesController();
       const networkController = new NetworkController();
       const assetContractController = new AssetsContractController();
-      const assetController = new AssetsController({
+      const collectiblesController = new CollectiblesController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
@@ -164,13 +177,20 @@ describe('ComposableController', () => {
           assetContractController,
         ),
       });
+      const tokensController = new TokensController({
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
+        onNetworkStateChange: (listener) =>
+          networkController.subscribe(listener),
+      });
       const controller = new ComposableController([
         new AddressBookController(),
-        assetController,
+        collectiblesController,
         assetContractController,
         new EnsController(),
         networkController,
         preferencesController,
+        tokensController,
       ]);
       expect(controller.flatState).toStrictEqual({
         addressBook: {},
@@ -188,8 +208,11 @@ describe('ComposableController', () => {
         ipfsGateway: 'https://ipfs.io/ipfs/',
         lostIdentities: {},
         network: 'loading',
+        isCustomNetwork: false,
+        properties: { isEIP1559Compatible: false },
         provider: { type: 'mainnet', chainId: NetworksChainId.mainnet },
         selectedAddress: '',
+        useStaticTokenList: false,
         suggestedAssets: [],
         tokens: [],
       });
