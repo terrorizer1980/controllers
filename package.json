@@ -60,7 +60,7 @@
     "immer": "^9.0.6",
     "isomorphic-fetch": "^3.0.0",
     "jsonschema": "^1.2.4",
-    "nanoid": "^3.1.12",
+    "nanoid": "^3.1.25",
     "punycode": "^2.1.1",
     "single-call-balance-checker-abi": "^1.0.0",
     "uuid": "^8.3.2",
