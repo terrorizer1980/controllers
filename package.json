@@ -35,8 +35,8 @@
     "doc": "typedoc && touch docs/.nojekyll"
   },
   "dependencies": {
-    "@ethereumjs/common": "^2.3.1",
-    "@ethereumjs/tx": "^3.2.1",
+    "@ethereumjs/common": "^3.0.0",
+    "@ethereumjs/tx": "^4.0.0",
     "@metamask/contract-metadata": "^1.29.0",
     "@types/uuid": "^8.3.0",
     "abort-controller": "^3.0.0",
@@ -64,7 +64,7 @@
     "punycode": "^2.1.1",
     "single-call-balance-checker-abi": "^1.0.0",
     "uuid": "^8.3.2",
-    "web3": "^0.20.7",
+    "web3": "^1.2.0",
     "web3-provider-engine": "^16.0.3"
   },
   "devDependencies": {
