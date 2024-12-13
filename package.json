@@ -35,8 +35,8 @@
     "doc": "typedoc && touch docs/.nojekyll"
   },
   "dependencies": {
-    "@ethereumjs/common": "^2.3.1",
-    "@ethereumjs/tx": "^3.2.1",
+    "@ethereumjs/common": "^3.0.0",
+    "@ethereumjs/tx": "^4.0.0",
     "@metamask/contract-metadata": "^1.29.0",
     "@types/uuid": "^8.3.0",
     "abort-controller": "^3.0.0",
@@ -60,12 +60,12 @@
     "immer": "^9.0.6",
     "isomorphic-fetch": "^3.0.0",
     "jsonschema": "^1.2.4",
-    "nanoid": "^3.1.12",
+    "nanoid": "^3.3.8",
     "punycode": "^2.1.1",
     "single-call-balance-checker-abi": "^1.0.0",
     "uuid": "^8.3.2",
     "web3": "^0.20.7",
-    "web3-provider-engine": "^16.0.3"
+    "web3-provider-engine": "^17.0.0"
   },
   "devDependencies": {
     "@lavamoat/allow-scripts": "^1.0.6",
