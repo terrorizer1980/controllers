@@ -35,8 +35,8 @@
     "doc": "typedoc && touch docs/.nojekyll"
   },
   "dependencies": {
-    "@ethereumjs/common": "^2.3.1",
-    "@ethereumjs/tx": "^3.2.1",
+    "@ethereumjs/common": "^3.0.0",
+    "@ethereumjs/tx": "^4.0.0",
     "@metamask/contract-metadata": "^1.29.0",
     "@types/uuid": "^8.3.0",
     "abort-controller": "^3.0.0",
@@ -44,15 +44,15 @@
     "babel-runtime": "^6.26.0",
     "eth-ens-namehash": "^2.0.8",
     "eth-json-rpc-infura": "^5.1.0",
-    "eth-keyring-controller": "^6.2.1",
+    "eth-keyring-controller": "^9.0.0",
     "eth-method-registry": "1.1.0",
     "eth-phishing-detect": "^1.1.14",
     "eth-query": "^2.1.2",
     "eth-rpc-errors": "^4.0.0",
-    "eth-sig-util": "^3.0.0",
+    "eth-sig-util": "^3.0.1",
     "ethereumjs-util": "^7.0.10",
     "ethereumjs-wallet": "^1.0.1",
-    "ethers": "^5.4.1",
+    "ethers": "^6.0.0",
     "ethjs-unit": "^0.1.6",
     "ethjs-util": "^0.1.6",
     "human-standard-collectible-abi": "^1.0.2",
@@ -65,7 +65,7 @@
     "single-call-balance-checker-abi": "^1.0.0",
     "uuid": "^8.3.2",
     "web3": "^0.20.7",
-    "web3-provider-engine": "^16.0.3"
+    "web3-provider-engine": "^17.0.0"
   },
   "devDependencies": {
     "@lavamoat/allow-scripts": "^1.0.6",
